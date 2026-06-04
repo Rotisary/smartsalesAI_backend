@@ -7,9 +7,10 @@ from alembic import context
 from app.config import settings as app_settings
 from app.database import Base
 
-# TODO: after models are implemented (Part 2 + revision), import them here so
-# autogenerate sees all tables, e.g.:
-# from app.models import business, lead, message, sale, settings  # noqa: F401
+from app.models import business  # noqa: F401
+
+# TODO: import remaining models when implemented:
+# from app.models import lead, message, sale, settings  # noqa: F401
 
 config = context.config
 
