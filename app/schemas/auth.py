@@ -39,6 +39,12 @@ class TokenResponse(BaseModel):
     refresh_token_expires_in: int
 
 
+class LogoutResponse(BaseModel):
+    status: str
+    revoked_at: Optional[datetime] = None
+    message: str
+
+
 class AuthResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

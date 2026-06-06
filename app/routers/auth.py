@@ -2,7 +2,15 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.schemas.auth import AuthResponse, LoginRequest, LogoutRequest, RefreshRequest, SignupRequest, TokenResponse
+from app.schemas.auth import (
+    AuthResponse, 
+    LoginRequest, 
+    LogoutRequest, 
+    LogoutResponse, 
+    RefreshRequest, 
+    SignupRequest, 
+    TokenResponse
+)
 from app.services.auth_service import AuthService
 
 router = APIRouter(prefix="/api/auth", tags=["Auth"])
@@ -33,9 +41,9 @@ async def refresh(payload: RefreshRequest, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(exc))
 
 
-@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
+@router.post("/logout", response_model=LogoutResponse, status_code=status.HTTP_200_OK)
 async def logout(payload: LogoutRequest, db: AsyncSession = Depends(get_db)):
     try:
-        await auth_service.logout(payload, db)
+        return await auth_service.logout(payload, db)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))

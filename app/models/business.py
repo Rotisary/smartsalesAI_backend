@@ -30,10 +30,10 @@ class Business(BaseModel):
 
     whatsapp_phone_number_id = Column(String(64), nullable=True, unique=True)
     whatsapp_connected = Column(Boolean, default=False, nullable=False)
-    connected_at = Column(DateTime, nullable=True)
+    connected_at = Column(DateTime(timezone=True), nullable=True)
 
     is_active = Column(Boolean, default=True, nullable=False)
-    last_login_at = Column(DateTime, nullable=True)
+    last_login_at = Column(DateTime(timezone=True), nullable=True)
     timezone = Column(String(64), default="Africa/Lagos", nullable=False)
 
     settings = relationship(

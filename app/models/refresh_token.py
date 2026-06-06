@@ -18,8 +18,8 @@ class RefreshToken(BaseModel):
         nullable=False,
         index=True,
     )
-    expires_at = Column(DateTime, nullable=False)
-    revoked_at = Column(DateTime, nullable=True)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    revoked_at = Column(DateTime(timezone=True), nullable=True)
     replaced_by_jti = Column(String(64), nullable=True)
 
     business = relationship("Business", back_populates="refresh_tokens")

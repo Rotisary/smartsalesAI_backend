@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import Optional
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
@@ -20,8 +21,8 @@ class BusinessSettingsCreate(BusinessSettingsBase):
 class BusinessSettingsRead(BusinessSettingsBase):
     model_config = ConfigDict(from_attributes=True)
 
-    id: str
-    business_id: str
+    id: UUID
+    business_id: UUID
     business_name: str
     ai_persona_name: str
     ai_tone: str

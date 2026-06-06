@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import Optional
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
@@ -23,7 +24,7 @@ class BusinessCreate(BusinessBase):
 class BusinessRead(BusinessBase):
     model_config = ConfigDict(from_attributes=True)
 
-    id: str
+    id: UUID
     whatsapp_phone_number_id: Optional[str] = None
     whatsapp_connected: bool
     connected_at: Optional[datetime] = None

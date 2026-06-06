@@ -1,6 +1,7 @@
 import datetime
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from datetime import timezone
 
 from sqlalchemy import Column, DateTime
 from sqlalchemy.ext.asyncio import (
@@ -27,11 +28,11 @@ class BaseModel(Base):
     """Base model with automatic timestamp tracking for all entities."""
     __abstract__ = True
 
-    created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.datetime.now(timezone.utc), nullable=False)
     updated_at = Column(
-        DateTime,
-        default=datetime.datetime.utcnow,
-        onupdate=datetime.datetime.utcnow,
+        DateTime(timezone=True),
+        default=lambda: datetime.datetime.now(timezone.utc),
+        onupdate=lambda: datetime.datetime.now(timezone.utc),
         nullable=False,
     )
 

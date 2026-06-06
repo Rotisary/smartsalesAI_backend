@@ -1,11 +1,19 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.models import Business, BusinessSettings, RefreshToken
-from app.schemas.auth import AuthResponse, LoginRequest, LogoutRequest, RefreshRequest, SignupRequest, TokenResponse
+from app.schemas.auth import (
+    AuthResponse, 
+    LoginRequest, 
+    LogoutRequest,
+    LogoutResponse, 
+    RefreshRequest, 
+    SignupRequest, 
+    TokenResponse
+)
 from app.schemas.business import BusinessRead
 from app.schemas.settings import BusinessSettingsRead
 from app.utils.auth.jwt import (
@@ -42,7 +50,11 @@ class AuthService:
         if payload.whatsapp_connection:
             business.whatsapp_phone_number_id = payload.whatsapp_connection.whatsapp_phone_number_id
             business.whatsapp_connected = True
-            business.connected_at = payload.whatsapp_connection.connected_at or datetime.utcnow()
+            connected_at = payload.whatsapp_connection.connected_at or datetime.now(timezone.utc)
+            # Ensure connected_at is timezone-aware UTC
+            if connected_at.tzinfo is None:
+                connected_at = connected_at.replace(tzinfo=timezone.utc)
+            business.connected_at = connected_at
         else:
             business.whatsapp_connected = False
             business.connected_at = None
@@ -82,7 +94,7 @@ class AuthService:
         if not business or not verify_password(payload.password, business.password_hash):
             raise ValueError("Invalid email or password")
 
-        business.last_login_at = datetime.utcnow()
+        business.last_login_at = datetime.now(timezone.utc)
         await db.flush()
 
         settings_result = await db.execute(
@@ -134,7 +146,7 @@ class AuthService:
         if not refresh_row:
             raise ValueError("Refresh token not found")
 
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         if refresh_row.revoked_at is not None:
             raise ValueError("Refresh token has been revoked")
         if refresh_row.expires_at <= now:
@@ -147,7 +159,7 @@ class AuthService:
         await db.commit()
         return token_response
 
-    async def logout(self, payload: LogoutRequest, db: AsyncSession) -> None:
+    async def logout(self, payload: LogoutRequest, db: AsyncSession) -> LogoutResponse:
         try:
             token_payload = decode_token(payload.refresh_token)
         except Exception as exc:
@@ -159,18 +171,36 @@ class AuthService:
         jti = get_token_jti(token_payload)
         result = await db.execute(select(RefreshToken).where(RefreshToken.jti == jti))
         refresh_row = result.scalar_one_or_none()
+        
         if not refresh_row:
-            return
+            return LogoutResponse(
+                status="success",
+                revoked_at=None,
+                message="Token not found; already logged out"
+            )
 
-        if refresh_row.revoked_at is None:
-            refresh_row.revoked_at = datetime.utcnow()
+        if refresh_row.revoked_at is not None:
+            return LogoutResponse(
+                status="already_revoked",
+                revoked_at=refresh_row.revoked_at,
+                message=f"Token was previously revoked on {refresh_row.revoked_at.isoformat()}"
+            )
+
+        revoked_now = datetime.now(timezone.utc)
+        refresh_row.revoked_at = revoked_now
         await db.commit()
+        
+        return LogoutResponse(
+            status="success",
+            revoked_at=revoked_now,
+            message="Token revoked successfully"
+        )
 
     async def _issue_token_pair(self, db: AsyncSession, business_id) -> tuple[TokenResponse, str]:
         access_token, _, access_expires_in = create_access_token(business_id=str(business_id))
         refresh_token, refresh_jti, refresh_expires_in = create_refresh_token(business_id=str(business_id))
 
-        expires_at = datetime.utcnow() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+        expires_at = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
         db.add(
             RefreshToken(
                 jti=refresh_jti,
