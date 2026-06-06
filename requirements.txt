@@ -13,6 +13,7 @@ pydantic-settings==2.3.0
 python-dotenv==1.0.1
 python-multipart==0.0.9
 tenacity==8.3.0
+fastapi-cli==0.0.24
 PyJWT==2.10.1
 pwdlib==0.2.1
 argon2-cffi==23.1.0
