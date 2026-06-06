@@ -15,6 +15,11 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     FRONTEND_URL: str = "http://localhost:3000"
 
+    # JWT Auth
+    JWT_ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+
     # Database
     DATABASE_URL: str
 

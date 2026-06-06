@@ -1,6 +1,7 @@
 import uuid
 
 from sqlalchemy import Boolean, Column, DateTime, Enum as SAEnum, String
+from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
 
 from app.database import BaseModel
@@ -27,13 +28,26 @@ class Business(BaseModel):
     support_whatsapp = Column(String(32), nullable=False)
     website_url = Column(String(512), nullable=True)
 
-    whatsapp_phone_number_id = Column(String(64), nullable=False, unique=True)
+    whatsapp_phone_number_id = Column(String(64), nullable=True, unique=True)
     whatsapp_connected = Column(Boolean, default=False, nullable=False)
     connected_at = Column(DateTime, nullable=True)
 
     is_active = Column(Boolean, default=True, nullable=False)
     last_login_at = Column(DateTime, nullable=True)
     timezone = Column(String(64), default="Africa/Lagos", nullable=False)
+
+    settings = relationship(
+        "BusinessSettings",
+        back_populates="business",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
+
+    refresh_tokens = relationship(
+        "RefreshToken",
+        back_populates="business",
+        cascade="all, delete-orphan",
+    )
 
     def __repr__(self) -> str:
         return (

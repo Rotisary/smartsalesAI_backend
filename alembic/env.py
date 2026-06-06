@@ -7,10 +7,9 @@ from alembic import context
 from app.config import settings as app_settings
 from app.database import Base
 
-from app.models import business  # noqa: F401
-
-# TODO: import remaining models when implemented:
-# from app.models import lead, message, sale, settings  # noqa: F401
+from app.models.business import Business
+from app.models.settings import BusinessSettings
+from app.models.refresh_token import RefreshToken 
 
 config = context.config
 

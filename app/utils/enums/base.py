@@ -7,7 +7,7 @@ class BaseEnum(Enum):
         return [(i.value, i.name) for i in cls]
 
     @classmethod
-    def values(cls):
+    def values(cls, _enum_cls=None):
         return list(i.value for i in cls)
 
     @classmethod
