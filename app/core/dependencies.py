@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.models.business import Business
-from app.utils.jwt import decode_token, get_business_id, get_token_type
+from app.utils.auth.jwt import decode_token, get_business_id, get_token_type
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 

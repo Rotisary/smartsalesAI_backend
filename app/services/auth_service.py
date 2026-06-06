@@ -8,7 +8,7 @@ from app.models import Business, BusinessSettings, RefreshToken
 from app.schemas.auth import AuthResponse, LoginRequest, LogoutRequest, RefreshRequest, SignupRequest, TokenResponse
 from app.schemas.business import BusinessRead
 from app.schemas.settings import BusinessSettingsRead
-from app.utils.jwt import (
+from app.utils.auth.jwt import (
     create_access_token, 
     create_refresh_token, 
     decode_token, 
@@ -16,7 +16,7 @@ from app.utils.jwt import (
     get_token_jti, 
     get_token_type
 )
-from app.utils.password import hash_password, verify_password
+from app.utils.auth.password import hash_password, verify_password
 
 
 class AuthService:
