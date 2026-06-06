@@ -30,52 +30,54 @@ from app.utils.auth.password import hash_password, verify_password
 class AuthService:
     async def signup(self, payload: SignupRequest, db: AsyncSession) -> AuthResponse:
         email = payload.business.business_email.strip().lower()
-        existing = await db.execute(
-            select(Business).where(Business.business_email == email)
-        )
-        if existing.scalar_one_or_none():
-            raise ValueError("A business with this email already exists")
 
-        business = Business(
-            business_owner_name=payload.business.business_owner_name,
-            business_email=email,
-            password_hash=hash_password(payload.business.password),
-            business_name=payload.business.business_name,
-            industry_category=payload.business.industry_category,
-            support_whatsapp=payload.business.support_whatsapp,
-            website_url=payload.business.website_url,
-            timezone=payload.business.timezone,
-        )
+        async with db.begin():
+            existing = await db.execute(
+                select(Business).where(Business.business_email == email)
+            )
+            if existing.scalar_one_or_none():
+                raise ValueError("A business with this email already exists")
 
-        if payload.whatsapp_connection:
-            business.whatsapp_phone_number_id = payload.whatsapp_connection.whatsapp_phone_number_id
-            business.whatsapp_connected = True
-            connected_at = payload.whatsapp_connection.connected_at or datetime.now(timezone.utc)
-            # Ensure connected_at is timezone-aware UTC
-            if connected_at.tzinfo is None:
-                connected_at = connected_at.replace(tzinfo=timezone.utc)
-            business.connected_at = connected_at
-        else:
-            business.whatsapp_connected = False
-            business.connected_at = None
+            business = Business(
+                business_owner_name=payload.business.business_owner_name,
+                business_email=email,
+                password_hash=hash_password(payload.business.password),
+                business_name=payload.business.business_name,
+                industry_category=payload.business.industry_category,
+                support_whatsapp=payload.business.support_whatsapp,
+                website_url=payload.business.website_url,
+                timezone=payload.business.timezone,
+            )
 
-        db.add(business)
-        await db.flush()
+            if payload.whatsapp_connection:
+                business.whatsapp_phone_number_id = payload.whatsapp_connection.whatsapp_phone_number_id
+                business.whatsapp_connected = True
+                connected_at = payload.whatsapp_connection.connected_at or datetime.now(timezone.utc)
+                # Ensure connected_at is timezone-aware UTC
+                if connected_at.tzinfo is None:
+                    connected_at = connected_at.replace(tzinfo=timezone.utc)
+                business.connected_at = connected_at
+            else:
+                business.whatsapp_connected = False
+                business.connected_at = None
 
-        settings_row = BusinessSettings(
-            business_id=business.id,
-            business_name=payload.settings.business_name or business.business_name,
-            ai_persona_name=payload.settings.ai_persona_name or settings.DEFAULT_AI_PERSONA_NAME,
-            ai_tone=payload.settings.ai_tone or "Friendly",
-            knowledge_base=payload.settings.knowledge_base or "",
-            auto_followup=payload.settings.auto_followup if payload.settings.auto_followup is not None else True,
-            human_handoff_trigger=payload.settings.human_handoff_trigger if payload.settings.human_handoff_trigger is not None else True,
-        )
-        db.add(settings_row)
-        await db.flush()
+            db.add(business)
+            await db.flush()
 
-        token_response, _ = await self._issue_token_pair(db, business.id)
-        await db.commit()
+            settings_row = BusinessSettings(
+                business_id=business.id,
+                business_name=payload.settings.business_name or business.business_name,
+                ai_persona_name=payload.settings.ai_persona_name or settings.DEFAULT_AI_PERSONA_NAME,
+                ai_tone=payload.settings.ai_tone or "Friendly",
+                knowledge_base=payload.settings.knowledge_base or "",
+                auto_followup=payload.settings.auto_followup if payload.settings.auto_followup is not None else True,
+                human_handoff_trigger=payload.settings.human_handoff_trigger if payload.settings.human_handoff_trigger is not None else True,
+            )
+            db.add(settings_row)
+            await db.flush()
+
+            token_response, _ = await self._issue_token_pair(db, business.id)
+
         await db.refresh(business)
         await db.refresh(settings_row)
 
