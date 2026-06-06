@@ -5,7 +5,7 @@ from sqlalchemy import Boolean, Column, DateTime, Enum as SAEnum, String
 from sqlalchemy.dialects.postgresql import UUID
 
 from app.database import Base
-from app.utils.enums.business import IndustryCategory
+from app.utils.enums import IndustryCategory
 
 
 class Business(Base):
@@ -21,7 +21,7 @@ class Business(Base):
         SAEnum(
             IndustryCategory,
             name="industry_category_enum",
-            values_callable=lambda obj: [e.value for e in obj],
+            values_callable=IndustryCategory.values,
         ),
         nullable=False,
     )
