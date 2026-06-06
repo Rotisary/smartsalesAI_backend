@@ -4,6 +4,10 @@ from typing import Any
 import httpx
 
 from app.config import settings
+from app.core.exceptions.whatsapp import (
+    WhatsAppAPIError,
+    WhatsAppConfigurationError,
+)
 
 
 # a placeholder WhatsAppConnection class
@@ -11,23 +15,6 @@ from app.config import settings
 class WhatsAppConnection:
     phone_number_id: str
     access_token: str
-
-
-class WhatsAppConfigurationError(ValueError):
-    pass
-
-
-class WhatsAppAPIError(RuntimeError):
-    def __init__(
-        self,
-        message: str,
-        *,
-        status_code: int | None = None,
-        meta_error: dict[str, Any] | None = None,
-    ) -> None:
-        super().__init__(message)
-        self.status_code = status_code
-        self.meta_error = meta_error
 
 
 class WhatsAppService:
@@ -45,6 +32,57 @@ class WhatsAppService:
             "Authorization": f"Bearer {connection.access_token}",
             "Content-Type": "application/json",
         }
+
+    async def _post(self, payload: dict[str, Any]) -> dict[str, Any]:
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.post(
+                    self.url,
+                    json=payload,
+                    headers=self.headers,
+                )
+                response.raise_for_status()
+                try:
+                    return response.json()
+                except ValueError:
+                    return {}
+        except httpx.HTTPStatusError as exc:
+            raise self._build_api_error(exc) from exc
+        except httpx.RequestError as exc:
+            raise WhatsAppAPIError(
+                "WhatsApp API request failed due to a network error"
+            ) from exc
+
+    @staticmethod
+    def _validate_connection(connection: WhatsAppConnection) -> None:
+        if not connection.phone_number_id or not connection.phone_number_id.strip():
+            raise WhatsAppConfigurationError("WhatsApp phone number ID is required")
+        if not connection.access_token or not connection.access_token.strip():
+            raise WhatsAppConfigurationError("WhatsApp access token is required")
+
+    @staticmethod
+    def _build_api_error(exc: httpx.HTTPStatusError) -> WhatsAppAPIError:
+        response = exc.response
+        status_code = response.status_code
+        meta_error: dict[str, Any] | None = None
+        message = "Meta Graph API returned an error"
+
+        try:
+            body = response.json()
+        except ValueError:
+            body = None
+
+        if isinstance(body, dict):
+            error = body.get("error")
+            if isinstance(error, dict):
+                meta_error = error
+                message = str(error.get("message") or message)
+
+        return WhatsAppAPIError(
+            f"WhatsApp API request failed with status {status_code}: {message}",
+            status_code=status_code,
+            meta_error=meta_error,
+        )
 
     async def send_text(
         self,
@@ -101,54 +139,3 @@ class WhatsAppService:
             },
         }
         return await self._post(payload)
-
-    async def _post(self, payload: dict[str, Any]) -> dict[str, Any]:
-        try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.post(
-                    self.url,
-                    json=payload,
-                    headers=self.headers,
-                )
-                response.raise_for_status()
-                try:
-                    return response.json()
-                except ValueError:
-                    return {}
-        except httpx.HTTPStatusError as exc:
-            raise self._build_api_error(exc) from exc
-        except httpx.RequestError as exc:
-            raise WhatsAppAPIError(
-                "WhatsApp API request failed due to a network error"
-            ) from exc
-
-    @staticmethod
-    def _validate_connection(connection: WhatsAppConnection) -> None:
-        if not connection.phone_number_id or not connection.phone_number_id.strip():
-            raise WhatsAppConfigurationError("WhatsApp phone number ID is required")
-        if not connection.access_token or not connection.access_token.strip():
-            raise WhatsAppConfigurationError("WhatsApp access token is required")
-
-    @staticmethod
-    def _build_api_error(exc: httpx.HTTPStatusError) -> WhatsAppAPIError:
-        response = exc.response
-        status_code = response.status_code
-        meta_error: dict[str, Any] | None = None
-        message = "Meta Graph API returned an error"
-
-        try:
-            body = response.json()
-        except ValueError:
-            body = None
-
-        if isinstance(body, dict):
-            error = body.get("error")
-            if isinstance(error, dict):
-                meta_error = error
-                message = str(error.get("message") or message)
-
-        return WhatsAppAPIError(
-            f"WhatsApp API request failed with status {status_code}: {message}",
-            status_code=status_code,
-            meta_error=meta_error,
-        )
