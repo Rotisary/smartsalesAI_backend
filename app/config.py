@@ -35,6 +35,9 @@ class Settings(BaseSettings):
     WHATSAPP_ACCESS_TOKEN: str
     WHATSAPP_VERIFY_TOKEN: str
     WHATSAPP_API_VERSION: str = "v19.0"
+    META_APP_ID: str = ""
+    META_APP_SECRET: str = ""
+    WHATSAPP_TOKEN_ENCRYPTION_KEY: str = ""
 
     # Business defaults
     DEFAULT_AI_PERSONA_NAME: str = "Aria"
