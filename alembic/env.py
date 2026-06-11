@@ -8,8 +8,11 @@ from app.config import settings as app_settings
 from app.database import Base
 
 from app.models.business import Business
+from app.models.lead import Lead
+from app.models.message import Message
 from app.models.settings import BusinessSettings
 from app.models.refresh_token import RefreshToken 
+from app.models.sale import Sale
 
 config = context.config
 

@@ -49,6 +49,24 @@ class Business(BaseModel):
         cascade="all, delete-orphan",
     )
 
+    leads = relationship(
+        "Lead",
+        back_populates="business",
+        cascade="all, delete-orphan",
+    )
+
+    messages = relationship(
+        "Message",
+        back_populates="business",
+        cascade="all, delete-orphan",
+    )
+
+    sales = relationship(
+        "Sale",
+        back_populates="business",
+        cascade="all, delete-orphan",
+    )
+
     def __repr__(self) -> str:
         return (
             f"<Business(id={self.id!s}, business_name={self.business_name!r}, "
