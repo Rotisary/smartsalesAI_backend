@@ -67,6 +67,13 @@ class Business(BaseModel):
         cascade="all, delete-orphan",
     )
 
+    whatsapp_connection = relationship(
+        "WhatsAppConnection",
+        back_populates="business",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
+
     def __repr__(self) -> str:
         return (
             f"<Business(id={self.id!s}, business_name={self.business_name!r}, "

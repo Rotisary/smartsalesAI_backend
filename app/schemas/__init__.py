@@ -4,6 +4,7 @@ from app.schemas.lead import LeadListResponse, LeadRead, LeadUpdate
 from app.schemas.message import AgentMessageCreate, HandoffResponse, HandoffUpdate, MessageRead
 from app.schemas.sale import SaleRead
 from app.schemas.settings import BusinessSettingsCreate, BusinessSettingsRead
+from app.schemas.whatsapp import ConnectWhatsAppRequest, ConnectWhatsAppResponse
 
 __all__ = [
     "AgentMessageCreate",
@@ -25,4 +26,6 @@ __all__ = [
     "SaleRead",
     "BusinessSettingsCreate",
     "BusinessSettingsRead",
+    "ConnectWhatsAppRequest",
+    "ConnectWhatsAppResponse",
 ]

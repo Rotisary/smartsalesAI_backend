@@ -3,11 +3,11 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.config import settings
 from app.core.dependencies import get_current_business
 from app.core.exceptions.whatsapp import WhatsAppAPIError, WhatsAppConfigurationError
 from app.database import get_db
 from app.models.business import Business
+from app.models.whatsapp_connection import WhatsAppConnection
 from app.schemas.message import (
     AgentMessageCreate,
     HandoffResponse,
@@ -15,7 +15,7 @@ from app.schemas.message import (
     MessageRead,
 )
 from app.services.lead_service import LeadService
-from app.services.whatsapp_service import WhatsAppConnection, WhatsAppService
+from app.services.whatsapp_service import WhatsAppService
 from app.utils.enums import MessageSender
 
 router = APIRouter(prefix="/api/messages", tags=["Messages"])
@@ -73,14 +73,19 @@ async def send_agent_reply(
             detail="WhatsApp is not connected for this business",
         )
 
-    whatsapp = WhatsAppService(
-        WhatsAppConnection(
-            phone_number_id=current_business.whatsapp_phone_number_id,
-            access_token=settings.WHATSAPP_ACCESS_TOKEN,
-        )
+    connection = await db.get(
+        WhatsAppConnection,
+        current_business.whatsapp_phone_number_id,
     )
+    if not connection or connection.business_id != current_business.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="WhatsApp connection details are missing for this business",
+        )
+
+    whatsapp = WhatsAppService()
     try:
-        await whatsapp.send_text(lead.phone, payload.content)
+        await whatsapp.send_text(connection, lead.phone, payload.content)
     except (WhatsAppAPIError, WhatsAppConfigurationError) as exc:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,

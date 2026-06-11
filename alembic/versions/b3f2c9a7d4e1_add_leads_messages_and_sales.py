@@ -1,7 +1,7 @@
 """add leads messages and sales
 
 Revision ID: b3f2c9a7d4e1
-Revises: 962aa9e1ad66
+Revises: b7f65c2a9d80
 Create Date: 2026-06-11 19:10:00.000000
 
 """
@@ -14,7 +14,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision: str = "b3f2c9a7d4e1"
-down_revision: Union[str, None] = "962aa9e1ad66"
+down_revision: Union[str, None] = "b7f65c2a9d80"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

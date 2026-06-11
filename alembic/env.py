@@ -13,6 +13,7 @@ from app.models.message import Message
 from app.models.settings import BusinessSettings
 from app.models.refresh_token import RefreshToken 
 from app.models.sale import Sale
+from app.models.whatsapp_connection import WhatsAppConnection
 
 config = context.config
 

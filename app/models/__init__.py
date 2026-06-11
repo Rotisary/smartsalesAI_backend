@@ -4,6 +4,7 @@ from app.models.message import Message
 from app.models.refresh_token import RefreshToken
 from app.models.sale import Sale
 from app.models.settings import BusinessSettings
+from app.models.whatsapp_connection import WhatsAppConnection
 from app.utils.enums.business import IndustryCategory
 
 __all__ = [
@@ -14,4 +15,5 @@ __all__ = [
     "Message",
     "RefreshToken",
     "Sale",
+    "WhatsAppConnection",
 ]
