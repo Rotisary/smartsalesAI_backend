@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.routers.auth import router as auth_router
+from app.routers.leads import router as leads_router
+from app.routers.messages import router as messages_router
 from app.routers.whatsapp import router as whatsapp_router
 
 app = FastAPI(
@@ -25,6 +27,8 @@ app.add_middleware(
 )
 
 app.include_router(auth_router)
+app.include_router(leads_router)
+app.include_router(messages_router)
 app.include_router(whatsapp_router)
 
 
