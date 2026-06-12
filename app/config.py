@@ -43,6 +43,13 @@ class Settings(BaseSettings):
     DEFAULT_AI_PERSONA_NAME: str = "Aria"
     DEFAULT_BUSINESS_NAME: str = "Acme Store"
 
+    # Knowledge document
+    MAX_FILE_SIZE_BYTES: int = 50 * 1024 * 1024
+    PRESIGNED_URL_TTL: int = 300
+
+    # embedding
+    EMBEDDING_MODEL: str = "models/text-embedding-004"
+
     @property
     def is_development(self) -> bool:
         return self.APP_ENV == "development"

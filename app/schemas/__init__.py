@@ -2,6 +2,7 @@ from app.schemas.auth import AuthResponse, LoginRequest, LogoutRequest, RefreshR
 from app.schemas.business import BusinessCreate, BusinessRead
 from app.schemas.settings import BusinessSettingsCreate, BusinessSettingsRead
 from app.schemas.whatsapp import ConnectWhatsAppRequest, ConnectWhatsAppResponse
+from app.schemas.knowledge_base import PresignedUrlRequest, PresignedUrlResponse, KnowledgeDocumentResponse, ReprocessResponse, DeleteDocumentResponse
 
 __all__ = [
     "AuthResponse",
@@ -17,4 +18,9 @@ __all__ = [
     "BusinessSettingsRead",
     "ConnectWhatsAppRequest",
     "ConnectWhatsAppResponse",
+    "PresignedUrlRequest",
+    "PresignedUrlResponse",
+    "KnowledgeDocumentResponse",
+    "ReprocessResponse",
+    "DeleteDocumentResponse"
 ]
