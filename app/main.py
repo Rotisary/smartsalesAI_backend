@@ -5,6 +5,8 @@ from app.config import settings
 from app.routers.auth import router as auth_router
 from app.routers.leads import router as leads_router
 from app.routers.messages import router as messages_router
+from app.routers.sales import router as sales_router
+from app.routers.webhook import router as webhook_router
 from app.routers.whatsapp import router as whatsapp_router
 
 app = FastAPI(
@@ -29,6 +31,8 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(leads_router)
 app.include_router(messages_router)
+app.include_router(sales_router)
+app.include_router(webhook_router)
 app.include_router(whatsapp_router)
 
 
