@@ -2,7 +2,13 @@ from app.schemas.auth import AuthResponse, LoginRequest, LogoutRequest, RefreshR
 from app.schemas.business import BusinessCreate, BusinessRead
 from app.schemas.lead import LeadListResponse, LeadRead, LeadUpdate
 from app.schemas.message import AgentMessageCreate, HandoffResponse, HandoffUpdate, MessageRead
-from app.schemas.sale import SaleRead
+from app.schemas.sale import (
+    SaleCreate,
+    SaleListResponse,
+    SaleRead,
+    SaleSummary,
+    SaleUpdate,
+)
 from app.schemas.settings import BusinessSettingsCreate, BusinessSettingsRead
 from app.schemas.whatsapp import ConnectWhatsAppRequest, ConnectWhatsAppResponse
 from app.schemas.knowledge_base import PresignedUrlRequest, PresignedUrlResponse, KnowledgeDocumentResponse, ReprocessResponse, DeleteDocumentResponse
@@ -24,7 +30,11 @@ __all__ = [
     "LeadRead",
     "LeadUpdate",
     "MessageRead",
+    "SaleCreate",
+    "SaleListResponse",
     "SaleRead",
+    "SaleSummary",
+    "SaleUpdate",
     "BusinessSettingsCreate",
     "BusinessSettingsRead",
     "ConnectWhatsAppRequest",
