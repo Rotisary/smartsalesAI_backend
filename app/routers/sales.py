@@ -92,74 +92,74 @@ async def export_sales_csv(
     )
 
 
-@router.post("/", response_model=SaleRead, status_code=status.HTTP_201_CREATED)
-async def create_sale(
-    payload: SaleCreate,
-    current_business: Business = Depends(get_current_business),
-    db: AsyncSession = Depends(get_db),
-):
-    try:
-        return await sale_service.create_sale(
-            db,
-            business_id=current_business.id,
-            values=payload.model_dump(),
-        )
-    except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+# @router.post("/", response_model=SaleRead, status_code=status.HTTP_201_CREATED)
+# async def create_sale(
+#     payload: SaleCreate,
+#     current_business: Business = Depends(get_current_business),
+#     db: AsyncSession = Depends(get_db),
+# ):
+#     try:
+#         return await sale_service.create_sale(
+#             db,
+#             business_id=current_business.id,
+#             values=payload.model_dump(),
+#         )
+#     except ValueError as exc:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
 
 
-@router.get("/{sale_id}", response_model=SaleRead)
-async def get_sale(
-    sale_id: UUID,
-    current_business: Business = Depends(get_current_business),
-    db: AsyncSession = Depends(get_db),
-):
-    sale = await sale_service.get_sale(
-        db,
-        business_id=current_business.id,
-        sale_id=sale_id,
-    )
-    if not sale:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sale not found")
-    return sale
+# @router.get("/{sale_id}", response_model=SaleRead)
+# async def get_sale(
+#     sale_id: UUID,
+#     current_business: Business = Depends(get_current_business),
+#     db: AsyncSession = Depends(get_db),
+# ):
+#     sale = await sale_service.get_sale(
+#         db,
+#         business_id=current_business.id,
+#         sale_id=sale_id,
+#     )
+#     if not sale:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sale not found")
+#     return sale
 
 
-@router.patch("/{sale_id}", response_model=SaleRead)
-async def update_sale(
-    sale_id: UUID,
-    payload: SaleUpdate,
-    current_business: Business = Depends(get_current_business),
-    db: AsyncSession = Depends(get_db),
-):
-    sale = await sale_service.get_sale(
-        db,
-        business_id=current_business.id,
-        sale_id=sale_id,
-    )
-    if not sale:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sale not found")
+# @router.patch("/{sale_id}", response_model=SaleRead)
+# async def update_sale(
+#     sale_id: UUID,
+#     payload: SaleUpdate,
+#     current_business: Business = Depends(get_current_business),
+#     db: AsyncSession = Depends(get_db),
+# ):
+#     sale = await sale_service.get_sale(
+#         db,
+#         business_id=current_business.id,
+#         sale_id=sale_id,
+#     )
+#     if not sale:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sale not found")
 
-    try:
-        return await sale_service.update_sale(
-            db,
-            business_id=current_business.id,
-            sale=sale,
-            values=payload.model_dump(exclude_unset=True),
-        )
-    except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+#     try:
+#         return await sale_service.update_sale(
+#             db,
+#             business_id=current_business.id,
+#             sale=sale,
+#             values=payload.model_dump(exclude_unset=True),
+#         )
+#     except ValueError as exc:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
 
 
-@router.delete("/{sale_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_sale(
-    sale_id: UUID,
-    current_business: Business = Depends(get_current_business),
-    db: AsyncSession = Depends(get_db),
-):
-    deleted = await sale_service.delete_sale(
-        db,
-        business_id=current_business.id,
-        sale_id=sale_id,
-    )
-    if not deleted:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sale not found")
+# @router.delete("/{sale_id}", status_code=status.HTTP_204_NO_CONTENT)
+# async def delete_sale(
+#     sale_id: UUID,
+#     current_business: Business = Depends(get_current_business),
+#     db: AsyncSession = Depends(get_db),
+# ):
+#     deleted = await sale_service.delete_sale(
+#         db,
+#         business_id=current_business.id,
+#         sale_id=sale_id,
+#     )
+#     if not deleted:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sale not found")
