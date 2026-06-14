@@ -1,4 +1,4 @@
-from app.schemas.auth import AuthResponse, LoginRequest, LogoutRequest, RefreshRequest, SignupRequest, TokenResponse, WhatsAppConnectionData
+from app.schemas.auth import AuthResponse, LoginRequest, LogoutRequest, RefreshRequest, SignupRequest, TokenResponse
 from app.schemas.business import BusinessCreate, BusinessRead
 from app.schemas.lead import LeadListResponse, LeadRead, LeadUpdate
 from app.schemas.message import AgentMessageCreate, HandoffResponse, HandoffUpdate, MessageRead
