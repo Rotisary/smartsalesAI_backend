@@ -116,7 +116,6 @@ class WhatsAppService:
         connection.status = "connected"
 
         db.add(connection)
-
         business.whatsapp_phone_number_id = payload.phone_number_id
         business.whatsapp_connected = True
         business.connected_at = datetime.now(timezone.utc)

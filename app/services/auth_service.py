@@ -49,18 +49,6 @@ class AuthService:
                 timezone=payload.business.timezone,
             )
 
-            if payload.whatsapp_connection:
-                business.whatsapp_phone_number_id = payload.whatsapp_connection.whatsapp_phone_number_id
-                business.whatsapp_connected = True
-                connected_at = payload.whatsapp_connection.connected_at or datetime.now(timezone.utc)
-                # Ensure connected_at is timezone-aware UTC
-                if connected_at.tzinfo is None:
-                    connected_at = connected_at.replace(tzinfo=timezone.utc)
-                business.connected_at = connected_at
-            else:
-                business.whatsapp_connected = False
-                business.connected_at = None
-
             db.add(business)
             await db.flush()
 

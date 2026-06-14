@@ -7,15 +7,9 @@ from app.schemas.business import BusinessCreate, BusinessRead
 from app.schemas.settings import BusinessSettingsCreate, BusinessSettingsRead
 
 
-class WhatsAppConnectionData(BaseModel):
-    whatsapp_phone_number_id: str
-    connected_at: Optional[datetime] = None
-
-
 class SignupRequest(BaseModel):
     business: BusinessCreate
     settings: BusinessSettingsCreate
-    whatsapp_connection: Optional[WhatsAppConnectionData] = None
 
 
 class LoginRequest(BaseModel):
