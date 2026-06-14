@@ -1,0 +1,11 @@
+.venv
+__pycache__
+*.pyc
+*.pyo
+.env
+.git
+.gitignore
+alembic/versions/__pycache__
+*.egg-info
+.pytest_cache
+ 

@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+import socketio
+from app.core.socket_manager import sio
+
 from app.config import settings
 from app.routers.auth import router as auth_router
 from app.routers.leads import router as leads_router
@@ -42,8 +45,4 @@ async def health():
         "env": settings.APP_ENV,
     }
 
-
-# --- Socket.IO ASGI (enable when socket_manager is implemented) ---
-# import socketio
-# from app.core.socket_manager import sio
-# socket_app = socketio.ASGIApp(sio, other_asgi_app=app)
+socket_app = socketio.ASGIApp(sio, other_asgi_app=app)

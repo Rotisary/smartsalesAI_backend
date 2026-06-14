@@ -20,7 +20,7 @@ from app.schemas.knowledge_base import (
 from app.services.s3_service import build_s3_key, generate_presigned_upload_url, delete_object
 from app.tasks.knowledge_tasks import process_document_task
 from app.core.dependencies import get_current_business
-from app import settings
+from app.config import settings
 from app.utils.enums import DocumentProcessingStatus
 from app.utils.knowledge_base import _get_doc_or_404
 
