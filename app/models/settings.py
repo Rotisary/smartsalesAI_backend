@@ -22,7 +22,6 @@ class BusinessSettings(BaseModel):
     business_name = Column(String(255), nullable=False)
     ai_persona_name = Column(String(255), default="Aria", nullable=False)
     ai_tone = Column(String(64), default="Friendly", nullable=False)
-    knowledge_base = Column(Text, default="", nullable=False)
     auto_followup = Column(Boolean, default=True, nullable=False)
     human_handoff_trigger = Column(Boolean, default=True, nullable=False)
 

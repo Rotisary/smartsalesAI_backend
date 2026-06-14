@@ -12,6 +12,7 @@ from app.routers.sales import router as sales_router
 from app.routers.webhook import router as webhook_router
 from app.routers.whatsapp import router as whatsapp_router
 from app.routers.knowledge import router as knowledge_router
+from app.routers.settings import router as settings_router
 
 app = FastAPI(
     title="SmartSales AI Backend",
@@ -39,6 +40,7 @@ app.include_router(sales_router)
 app.include_router(webhook_router)
 app.include_router(whatsapp_router)
 app.include_router(knowledge_router)
+app.include_router(settings_router)
 
 
 @app.get("/health")

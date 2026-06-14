@@ -69,7 +69,6 @@ class AuthService:
                 business_name=payload.settings.business_name or business.business_name,
                 ai_persona_name=payload.settings.ai_persona_name or settings.DEFAULT_AI_PERSONA_NAME,
                 ai_tone=payload.settings.ai_tone or "Friendly",
-                knowledge_base=payload.settings.knowledge_base or "",
                 auto_followup=payload.settings.auto_followup if payload.settings.auto_followup is not None else True,
                 human_handoff_trigger=payload.settings.human_handoff_trigger if payload.settings.human_handoff_trigger is not None else True,
             )
@@ -109,7 +108,6 @@ class AuthService:
                 business_name=business.business_name,
                 ai_persona_name=settings.DEFAULT_AI_PERSONA_NAME,
                 ai_tone="Friendly",
-                knowledge_base="",
                 auto_followup=True,
                 human_handoff_trigger=True,
             )
