@@ -39,6 +39,12 @@ class Settings(BaseSettings):
     META_APP_SECRET: str = ""
     WHATSAPP_TOKEN_ENCRYPTION_KEY: str = ""
 
+    # s3
+    AWS_REGION: str
+    AWS_ACCESS_KEY_ID: str
+    AWS_SECRET_ACCESS_KEY: str
+    S3_BUCKET_NAME: str
+
     # Business defaults
     DEFAULT_AI_PERSONA_NAME: str = "Aria"
     DEFAULT_BUSINESS_NAME: str = "Acme Store"
