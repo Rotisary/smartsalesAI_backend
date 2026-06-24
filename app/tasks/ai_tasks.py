@@ -7,7 +7,6 @@ from celery.exceptions import MaxRetriesExceededError
 
 from app.celery import celery_app
 from app.database import get_db
-from app.services.job_service import JobService
 from app.services.webhook_service import WebhookService
 
 logger = logging.getLogger(__name__)
