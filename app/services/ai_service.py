@@ -5,7 +5,7 @@ import uuid
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from ai.agent import get_reply
+from app.ai.agent import get_reply
 from app.config import settings
 from app.core.context_manager import context_manager
 from app.services.intent_service import IntentService
