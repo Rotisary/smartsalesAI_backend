@@ -82,11 +82,11 @@ class SocketManager:
         await sio.emit(
             "new_message",
             {
-                "leadId":          str(lead.id),
+                "leadId": str(lead.id),
                 "customerMessage": customer_message,
-                "aiReply":         ai_reply,
-                "leadName":        lead.name,
-                "leadPhone":       lead.phone,
+                "aiReply": ai_reply,
+                "leadName": lead.name,
+                "leadPhone": lead.phone,
             },
             room=f"lead_{lead.id}",
         )

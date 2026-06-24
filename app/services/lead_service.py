@@ -155,3 +155,55 @@ class LeadService:
 
         await db.flush()
         return message
+
+    async def update_lead_intent(
+        self,
+        db: AsyncSession,
+        *,
+        lead: Lead,
+        intent_tag: str,
+    ) -> Lead:
+        """
+        Updates lead score based on detected intent and derives status from score.
+        
+        Scoring system (from architecture revision):
+        - Pricing: +10
+        - Buying: +30
+        - Support: +5
+        - Complaint: +5
+        - Inquiry: +0
+        
+        Status derived from score:
+        - 0-19: new
+        - 20-49: warm
+        - 50-99: hot
+        - 100+: closed
+        """
+        # Add intent tag to lead's intent_tags if not already present
+        tags = lead.intent_tags or []
+        if intent_tag not in tags:
+            tags.append(intent_tag)
+            lead.intent_tags = tags
+
+        # Update lead score based on intent
+        score_mapping = {
+            "Pricing": 10,
+            "Buying": 30,
+            "Support": 5,
+            "Complaint": 5,
+            "Inquiry": 0,
+        }
+        lead.lead_score += score_mapping.get(intent_tag, 0)
+
+        # Derive status from score
+        if lead.lead_score >= 100:
+            lead.status = LeadStatus.CLOSED
+        elif lead.lead_score >= 50:
+            lead.status = LeadStatus.HOT
+        elif lead.lead_score >= 20:
+            lead.status = LeadStatus.WARM
+        else:
+            lead.status = LeadStatus.NEW
+
+        await db.flush()
+        return lead

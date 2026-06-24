@@ -5,7 +5,7 @@ celery_app = Celery(
     "smartsales",
     broker=settings.REDIS_URL,
     backend=settings.REDIS_URL,
-    include=["app.tasks.knowledge_tasks"]
+    include=["app.tasks.knowledge_tasks", "app.tasks.ai_tasks"]
 )
 
 celery_app.conf.update(

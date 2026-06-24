@@ -1,12 +1,18 @@
 import json
+import uuid
 from collections.abc import Sequence
 from dataclasses import asdict, dataclass
 from typing import Literal
 
 import redis.asyncio as redis
 from redis.asyncio import Redis
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
+from app.database import get_db
+from app.models.message import Message
+from app.utils.enums import MessageSender
 
 ConversationRole = Literal["customer", "ai", "agent", "system"]
 
@@ -18,21 +24,20 @@ class ConversationMessage:
 
 
 class ContextManager:
-    """Redis-backed short-term conversation memory.
+    """Redis-backed short-term conversation memory with PostgreSQL fallback.
 
     PostgreSQL stores the durable message history. Redis is only the fast cache
-    used by the AI pipeline.
+    used by the AI pipeline. When Redis cache is empty, history is rebuilt from PostgreSQL.
     """
 
     def __init__(
         self,
         *,
-        redis_url: str | None = None,
         history_ttl_seconds: int = 60 * 60 * 24,
         human_mode_ttl_seconds: int = 60 * 10,
         max_messages: int = 20,
     ) -> None:
-        self.redis_url = redis_url or settings.REDIS_URL
+        self.redis_url = settings.REDIS_URL
         self.history_ttl_seconds = history_ttl_seconds
         self.human_mode_ttl_seconds = human_mode_ttl_seconds
         self.max_messages = max_messages
@@ -49,25 +54,57 @@ class ContextManager:
         return self._redis
 
     async def get_history(self, lead_id: str) -> list[ConversationMessage]:
+        """Get conversation history from Redis cache, with PostgreSQL fallback."""
         raw_history = await self.client.get(self._history_key(lead_id))
-        if not raw_history:
-            return []
+        
+        if raw_history:
+            try:
+                items = json.loads(raw_history)
+                history: list[ConversationMessage] = []
+                for item in items:
+                    if not isinstance(item, dict):
+                        continue
+                    role = item.get("role")
+                    content = item.get("content")
+                    if role in {"customer", "ai", "agent", "system"} and isinstance(content, str):
+                        history.append(ConversationMessage(role=role, content=content))
+                return history
+            except json.JSONDecodeError:
+                await self.clear_history(lead_id)
 
+        # Redis cache miss - rebuild from PostgreSQL
+        return await self._rebuild_history_from_postgres(lead_id)
+
+    async def _rebuild_history_from_postgres(self, lead_id: str) -> list[ConversationMessage]:
+        """Rebuild conversation history from PostgreSQL messages."""
         try:
-            items = json.loads(raw_history)
-        except json.JSONDecodeError:
-            await self.clear_history(lead_id)
-            return []
+            async with get_db() as db:
+                stmt = (
+                    select(Message)
+                    .where(Message.lead_id == uuid.UUID(lead_id))
+                    .order_by(Message.created_at.desc())
+                    .limit(self.max_messages)
+                )
+                result = await db.execute(stmt)
+                messages = result.scalars().all()
 
-        history: list[ConversationMessage] = []
-        for item in items:
-            if not isinstance(item, dict):
-                continue
-            role = item.get("role")
-            content = item.get("content")
-            if role in {"customer", "ai", "agent", "system"} and isinstance(content, str):
-                history.append(ConversationMessage(role=role, content=content))
-        return history
+                history: list[ConversationMessage] = []
+                for msg in messages:
+                    # Map MessageSender enum to ConversationRole
+                    role_mapping = {
+                        MessageSender.CUSTOMER: "customer",
+                        MessageSender.AI: "ai",
+                        MessageSender.AGENT: "agent",
+                    }
+                    role = role_mapping.get(msg.sender, "customer")
+                    history.append(ConversationMessage(role=role, content=msg.content))
+
+                # Cache the rebuilt history in Redis
+                await self.set_history(lead_id, history)
+                return history
+
+        except Exception as e:
+            return []
 
     async def set_history(
         self,
@@ -109,12 +146,12 @@ class ContextManager:
         )
         return await self.set_history(lead_id, history)
 
-    async def rebuild_history(
-        self,
-        lead_id: str,
-        messages: Sequence[ConversationMessage],
-    ) -> list[ConversationMessage]:
-        return await self.set_history(lead_id, messages)
+    # async def rebuild_history(
+    #     self,
+    #     lead_id: str,
+    #     messages: Sequence[ConversationMessage],
+    # ) -> list[ConversationMessage]:
+    #     return await self.set_history(lead_id, messages)
 
     async def clear_history(self, lead_id: str) -> None:
         await self.client.delete(self._history_key(lead_id))
@@ -126,7 +163,7 @@ class ContextManager:
             "1" if is_human_mode else "0",
         )
 
-    async def get_cached_human_mode(self, lead_id: str) -> bool | None:
+    async def is_human_mode(self, lead_id: str) -> bool | None:
         value = await self.client.get(self._human_mode_key(lead_id))
         if value is None:
             return None

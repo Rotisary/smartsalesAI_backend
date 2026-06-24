@@ -5,14 +5,15 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response,
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
-from app.core.context_manager import context_manager
 from app.database import get_db
 from app.models.whatsapp_connection import WhatsAppConnection
+from app.tasks.ai_tasks import process_message_task
 from app.services.lead_service import LeadService
-from app.utils.enums import Channel, MessageSender
+from app.services.whatsapp_service import WhatsAppService
 
 router = APIRouter(prefix="/webhook", tags=["Webhook"])
 lead_service = LeadService()
+whatsapp_service = WhatsAppService()
 logger = logging.getLogger(__name__)
 
 
@@ -37,7 +38,7 @@ async def receive_whatsapp_webhook(
     db: AsyncSession = Depends(get_db),
 ):
     payload = await request.json()
-    processed_messages = 0
+    queued_messages = 0
     duplicate_messages = 0
     ignored_messages = 0
 
@@ -79,38 +80,17 @@ async def receive_whatsapp_webhook(
                 duplicate_messages += 1
                 continue
 
-            message_text = _extract_message_text(message_data)
-            if message_text is None:
-                message_text = _unsupported_message_text(message_data)
-
-            lead = await lead_service.get_or_create_lead(
-                db,
-                business_id=connection.business_id,
-                phone=str(sender_phone),
-                name=contacts_by_phone.get(str(sender_phone)),
-                channel=Channel.WHATSAPP,
+            process_message_task.delay(
+                message_data,
+                business_id=str(connection.business_id),
+                contacts_by_phone=contacts_by_phone,
+                customer_name=contacts_by_phone.get(sender_phone, "Customer"),
             )
-            await lead_service.save_message(
-                db,
-                business_id=connection.business_id,
-                lead=lead,
-                sender=MessageSender.CUSTOMER,
-                content=message_text,
-                wa_message_id=str(wa_message_id),
-            )
-            try:
-                await context_manager.append_message(
-                    str(lead.id),
-                    role="customer",
-                    content=message_text,
-                )
-            except Exception:
-                logger.exception("Failed to cache WhatsApp conversation context")
-            processed_messages += 1
+            queued_messages += 1
 
     return {
         "status": "ok",
-        "processed_messages": processed_messages,
+        "queued_messages": queued_messages,
         "duplicate_messages": duplicate_messages,
         "ignored_messages": ignored_messages,
     }
@@ -145,34 +125,3 @@ def _contacts_by_phone(contacts: list[Any]) -> dict[str, str]:
         if phone and name:
             names_by_phone[str(phone)] = str(name)
     return names_by_phone
-
-
-def _extract_message_text(message_data: dict[str, Any]) -> str | None:
-    message_type = message_data.get("type")
-    if message_type == "text":
-        text = message_data.get("text", {})
-        body = text.get("body") if isinstance(text, dict) else None
-        return str(body).strip() if body else None
-
-    if message_type == "button":
-        button = message_data.get("button", {})
-        text = button.get("text") if isinstance(button, dict) else None
-        return str(text).strip() if text else None
-
-    if message_type == "interactive":
-        interactive = message_data.get("interactive", {})
-        if not isinstance(interactive, dict):
-            return None
-        button_reply = interactive.get("button_reply", {})
-        list_reply = interactive.get("list_reply", {})
-        if isinstance(button_reply, dict) and button_reply.get("title"):
-            return str(button_reply["title"]).strip()
-        if isinstance(list_reply, dict) and list_reply.get("title"):
-            return str(list_reply["title"]).strip()
-
-    return None
-
-
-def _unsupported_message_text(message_data: dict[str, Any]) -> str:
-    message_type = str(message_data.get("type") or "unknown")
-    return f"[Unsupported WhatsApp message type: {message_type}]"
