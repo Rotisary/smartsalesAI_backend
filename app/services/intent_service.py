@@ -1,7 +1,7 @@
 import asyncio
 import logging
 
-from ai.agent import get_intent
+from app.ai.agent import get_intent
 
 logger = logging.getLogger(__name__)
 
